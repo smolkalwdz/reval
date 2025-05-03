@@ -156,9 +156,14 @@ function deleteCard(id) {
   localStorage.setItem('kanban17', JSON.stringify(data));
 }
 
+// Функция очистки всех данных с подтверждением
 function clearAll() {
-  document.querySelectorAll('.card').forEach(c => c.remove());
-  localStorage.removeItem('kanban17');
+  const confirmClear = window.confirm("Вы уверены, что хотите очистить все данные?");
+  if (confirmClear) {
+    document.querySelectorAll('.card').forEach(c => c.remove());
+    localStorage.removeItem('kanban17');
+    saveState();
+  }
 }
 
 // Сохранение состояния в Firebase
