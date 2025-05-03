@@ -73,12 +73,10 @@ const db = firebase.database(app);
 const tableSelect = document.getElementById('table');
 const board = document.getElementById('board');
 for (let i = 1; i <= 17; i++) {
-  // опция в селекте
   const opt = document.createElement('option');
   opt.value = i; opt.textContent = i;
   tableSelect.appendChild(opt);
 
-  // вместимость
   let cap;
   if (i <= 8) cap = '4–6 чел.';
   else if ([9,12,16].includes(i)) cap = '4 чел.';
@@ -86,7 +84,6 @@ for (let i = 1; i <= 17; i++) {
   else if ([10,11,15].includes(i)) cap = '8 чел.';
   else cap = 'VIP 12+ чел.';
 
-  // создание ячейки стола
   const cell = document.createElement('div');
   cell.className = 'cell';
   cell.id = 'table-' + i;
@@ -151,17 +148,14 @@ function toggleStatus(id) {
 function deleteCard(id) {
   const card = document.getElementById(id);
   if (card) card.remove();
-  let data = JSON.parse(localStorage.getItem('kanban17') || '[]');
-  data = data.filter(item => item.id !== id);
-  localStorage.setItem('kanban17', JSON.stringify(data));
+  saveState();
 }
 
-// Функция очистки всех данных с подтверждением
+// Очистка всех данных с подтверждением
 function clearAll() {
   const confirmClear = window.confirm("Вы уверены, что хотите очистить все данные?");
   if (confirmClear) {
     document.querySelectorAll('.card').forEach(c => c.remove());
-    localStorage.removeItem('kanban17');
     saveState();
   }
 }
