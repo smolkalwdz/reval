@@ -54,10 +54,11 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
 <script>
-// Ваши данные конфигурации Firebase
+// Конфигурация Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyARAYot7Ub7xK3DOyWXzRk0UI8RPqf1UQs",
   authDomain: "reval-d70b9.firebaseapp.com",
+  databaseURL: "https://reval-d70b9-default-rtdb.firebaseio.com", // Правильный URL вашей базы данных
   projectId: "reval-d70b9",
   storageBucket: "reval-d70b9.firebasestorage.app",
   messagingSenderId: "974824853655",
