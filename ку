@@ -49,160 +49,104 @@
 
 <div class="board" id="board"></div>
 
-<!-- Подключаем Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+<!-- Supabase SDK -->
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/index.min.js';
 
-<script>
-// Конфигурация Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyARAYot7Ub7xK3DOyWXzRk0UI8RPqf1UQs",
-  authDomain: "reval-d70b9.firebaseapp.com",
-  databaseURL: "https://reval-d70b9-default-rtdb.firebaseio.com", // Правильный URL вашей базы данных
-  projectId: "reval-d70b9",
-  storageBucket: "reval-d70b9.firebasestorage.app",
-  messagingSenderId: "974824853655",
-  appId: "1:974824853655:web:00cdb130fff2147f61d9d2",
-  measurementId: "G-TPM3TCTDPH"
-};
+  // Инициализация Supabase
+  const supabaseUrl = 'https://jkzgrmdwfdrddwpzqiuz.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpremdybWR3ZmRyZGR3cHpxaXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzMDg5ODIsImV4cCI6MjA2MTg4NDk4Mn0.pgGseeSNqlEZO1TItHM8BIWyEiATxyRDpo7XXMNAiIU';
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Инициализация Firebase
-const app = firebase.initializeApp(firebaseConfig);
-const db = firebase.database(app);
-
-// Генерация списка столов и селекта
-const tableSelect = document.getElementById('table');
-const board = document.getElementById('board');
-for (let i = 1; i <= 17; i++) {
-  const opt = document.createElement('option');
-  opt.value = i; opt.textContent = i;
-  tableSelect.appendChild(opt);
-
-  let cap;
-  if (i <= 8) cap = '4–6 чел.';
-  else if ([9,12,16].includes(i)) cap = '4 чел.';
-  else if ([13,14].includes(i)) cap = '2 чел.';
-  else if ([10,11,15].includes(i)) cap = '8 чел.';
-  else cap = 'VIP 12+ чел.';
-
-  const cell = document.createElement('div');
-  cell.className = 'cell';
-  cell.id = 'table-' + i;
-  cell.ondragover = ev => ev.preventDefault();
-  cell.ondrop = ev => drop(ev);
-  cell.innerHTML = `
-    <div class="cell-header">Стол ${i}</div>
-    <div class="cell-body"></div>
-    <div class="cell-footer">${cap}</div>
-  `;
-  board.appendChild(cell);
-}
-
-let cardId = 0;
-
-function drag(ev) {
-  ev.dataTransfer.setData('text', ev.target.id);
-}
-
-function drop(ev) {
-  ev.preventDefault();
-  const id = ev.dataTransfer.getData('text');
-  const target = ev.currentTarget.querySelector('.cell-body');
-  target.appendChild(document.getElementById(id));
-  saveState();
-}
-
-function addCard() {
-  const name = document.getElementById('name').value.trim();
-  const phone = document.getElementById('phone').value.trim();
-  const table = document.getElementById('table').value;
-  const time = document.getElementById('time').value;
-  const guests = document.getElementById('guests').value;
-  const source = document.getElementById('source').value;
-  const hookah = document.getElementById('hookah').checked ? 'Кальян' : '';
-  const vr = document.getElementById('vr').checked ? 'VR' : '';
-  if (!name || !phone || !table || !time || !guests || !source) return;
-
-  const card = document.createElement('div');
-  card.className = 'card red';
-  card.id = 'card-' + Date.now();
-  card.draggable = true;
-  card.ondragstart = drag;
-  card.innerHTML = `
-    <strong>${name}</strong><br>
-    ${time} · ${guests} чел.<br>
-    тел. ${phone}<br>
-    src: ${source}${hookah?'<br>🍹':''}${vr?'<br>🎮':''}
-    <button class="status-btn" onclick="toggleStatus('${card.id}')">Статус</button>
-    <button class="delete-btn" onclick="deleteCard('${card.id}')">Удалить</button>
-  `;
-  document.querySelector(`#table-${table} .cell-body`).appendChild(card);
-  saveState();
-}
-
-function toggleStatus(id) {
-  const c = document.getElementById(id);
-  c.classList.toggle('green');
-  saveState();
-}
-
-function deleteCard(id) {
-  const card = document.getElementById(id);
-  if (card) card.remove();
-  saveState();
-}
-
-// Очистка всех данных с подтверждением
-function clearAll() {
-  const confirmClear = window.confirm("Вы уверены, что хотите очистить все данные?");
-  if (confirmClear) {
-    document.querySelectorAll('.card').forEach(c => c.remove());
-    saveState();
+  // Генерация столов
+  const tableSelect = document.getElementById('table');
+  const board = document.getElementById('board');
+  for (let i = 1; i <= 17; i++) {
+    let cap = i <= 8 ? '4–6 чел.' :
+              [9,12,16].includes(i) ? '4 чел.' :
+              [13,14].includes(i) ? '2 чел.' :
+              [10,11,15].includes(i) ? '8 чел.' : 'VIP 12+ чел.';
+    const opt = document.createElement('option'); opt.value = i; opt.textContent = i;
+    tableSelect.append(opt);
+    const cell = document.createElement('div');
+    cell.className = 'cell'; cell.id = 'table-' + i;
+    cell.ondragover = e => e.preventDefault();
+    cell.ondrop = e => { e.preventDefault(); const id = e.dataTransfer.getData('text'); document.querySelector(`#table-${i} .cell-body`).append(document.getElementById(id)); updateTaskTable(id, i); };
+    cell.innerHTML = `<div class="cell-header">Стол ${i}</div><div class="cell-body"></div><div class="cell-footer">${cap}</div>`;
+    board.append(cell);
   }
-}
 
-// Сохранение состояния в Firebase
-function saveState() {
-  const snapshot = [];
-  document.querySelectorAll('.cell').forEach(cell => {
-    const table = cell.id.split('-')[1];
-    cell.querySelectorAll('.card').forEach(c => {
-      snapshot.push({
-        id: c.id,
-        table: table,
-        cls: c.className,
-        html: c.innerHTML
-      });
-    });
-  });
+  // Drag & Drop
+  window.drag = ev => ev.dataTransfer.setData('text', ev.target.id);
 
-  // Сохраняем в Firebase
-  firebase.database().ref('bookings').set(snapshot);
-}
-
-// Загружаем данные из Firebase
-function loadState() {
-  const bookingsRef = firebase.database().ref('bookings');
-  bookingsRef.on('value', snapshot => {
+  // Загрузка состояния
+  async function loadState() {
+    const { data, error } = await supabase.from('bookings').select('*');
+    if (error) return console.error(error);
     document.querySelectorAll('.card').forEach(c => c.remove());
-    const data = snapshot.val() || [];
     data.forEach(item => {
-      const cell = document.querySelector(`#table-${item.table} .cell-body`);
+      const cell = document.querySelector(`#table-${item.table_id} .cell-body`);
       if (!cell) return;
-
-      const c = document.createElement('div');
-      c.id = item.id;
-      c.className = item.cls;
-      c.draggable = true;
-      c.ondragstart = drag;
-      c.innerHTML = item.html;
-      cell.appendChild(c);
+      const card = document.createElement('div');
+      card.id = 'card-' + item.id; card.className = 'card ' + (item.status==='done'?'green':'red');
+      card.draggable = true; card.ondragstart = drag;
+      card.innerHTML = `
+        <strong>${item.name}</strong><br>
+        ${item.time} · ${item.guests} чел.<br>
+        тел. ${item.phone}<br>
+        src: ${item.source}${item.hookah?'<br>🍹':''}${item.vr?'<br>🎮':''}
+        <button class="status-btn" onclick="toggleStatus(${item.id})">Статус</button>
+        <button class="delete-btn" onclick="deleteCard(${item.id})">Удалить</button>
+      `;
+      cell.append(card);
     });
-  });
-}
+  }
+  window.onload = loadState;
 
-// Загружаем данные при загрузке страницы
-window.onload = loadState;
+  // Добавление карточки
+  window.addCard = async () => {
+    const name = nameInp.value.trim(), phone = phoneInp.value.trim(),
+          table = +tableSelect.value, time = timeInp.value,
+          guests = +guestsInp.value, source = sourceSel.value,
+          hookah = hookahChk.checked, vr = vrChk.checked;
+    if(!name||!phone||!table||!time||!guests||!source) return;
+    const { data, error } = await supabase.from('bookings').insert([{
+      name, phone, table_id:table, time, guests, source,
+      hookah:hookah?'Кальян':'', vr:vr?'VR':'', status:'to-do'
+    }]);
+    if(error) return console.error(error);
+    loadState();
+  };
+
+  // Удаление
+  window.deleteCard = async id => {
+    const { error } = await supabase.from('bookings').delete().eq('id', id);
+    if(error) return console.error(error);
+    loadState();
+  };
+
+  // Переключение статуса
+  window.toggleStatus = async id => {
+    const row = (await supabase.from('bookings').select('status').eq('id',id).single()).data;
+    const newStatus = row.status==='to-do'?'done':'to-do';
+    const { error } = await supabase.from('bookings').update({status:newStatus}).eq('id', id);
+    if(error) return console.error(error);
+    loadState();
+  };
+
+  // Обновление столика при drop
+  async function updateTaskTable(elId, newTable) {
+    const id = +elId.split('-')[1];
+    const { error } = await supabase.from('bookings').update({table_id:newTable}).eq('id', id);
+    if(error) console.error(error); else loadState();
+  }
+
+  // Очистка всех
+  window.clearAll = async () => {
+    if(!confirm("Очистить все?")) return;
+    const { error } = await supabase.from('bookings').delete();
+    if(error) console.error(error); else loadState();
+  };
 </script>
 
 </body>
